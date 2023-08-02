@@ -3,15 +3,20 @@ using TMS.Model;
 using TMS.Model.DTO;
 using TaskStatus = TMS.Model.TaskStatus;
 
-namespace TMS.Service.Impl
+namespace TMS.Service.Impl.Impl
 {
     public class TaskService : ITaskService
     {
         private readonly IMemoryCache _memoryCache;
+        private readonly IServiceBusSender _serviceBusSender;
 
-        public TaskService(IMemoryCache memoryCache)
+        public TaskService(
+            IMemoryCache memoryCache,
+            IServiceBusSender serviceBusSender
+            )
         {
             _memoryCache = memoryCache;
+            _serviceBusSender = serviceBusSender;
         }
 
         public List<Model.Task> GetAllTasks()
@@ -19,12 +24,13 @@ namespace TMS.Service.Impl
             return GetCachedTasks();
         }
 
-        public Model.Task AddTask(Model.Task task)
+        public async Task<Model.Task> AddTask(Model.Task task)
         {
             List<Model.Task> tasks = GetCachedTasks();
             task.TaskID = tasks.Count + 1; // Auto-generate TaskID for simplicity
             tasks.Add(task);
             UpdateCachedTasks(tasks);
+            await _serviceBusSender.Send(task);
             return task;
         }
 

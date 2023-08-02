@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using TMS.Service;
 using TMS.Service.Impl;
+using TMS.Service.Impl.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,7 @@ builder.Services.AddControllers().AddJsonOptions(x =>
                 // ignore omitted parameters on models to enable optional params (e.g. User update)
                 x.JsonSerializerOptions.IgnoreNullValues = true;
             });
+builder.Services.AddScoped<IServiceBusSender, ServiceBusSender>();
 
 var app = builder.Build();
 
