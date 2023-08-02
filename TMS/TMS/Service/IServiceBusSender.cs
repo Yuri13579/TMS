@@ -2,7 +2,7 @@
 {
     public interface IServiceBusSender
     {
-        public System.Threading.Tasks.Task Send(Model.Task task);
-        public Task<List<Model.Task>> Get(Model.Task task);
+        public System.Threading.Tasks.Task Send(Data.Model.Task task);
+        public Task<List<Data.Model.Task>> Get(Data.Model.Task task);
     }
 }

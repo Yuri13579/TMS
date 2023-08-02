@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
-using TMS.Model;
-using TMS.Model.DTO;
-using TaskStatus = TMS.Model.TaskStatus;
+using Data.Model;
+using Data.Model.DTO;
+using TaskStatus = Data.Model.TaskStatus;
+using Data.Repo;
 
 namespace TMS.Service.Impl.Impl
 {
@@ -9,36 +10,41 @@ namespace TMS.Service.Impl.Impl
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IServiceBusSender _serviceBusSender;
+        private readonly ITaskRepository _taskRepository;
 
         public TaskService(
             IMemoryCache memoryCache,
-            IServiceBusSender serviceBusSender
+            IServiceBusSender serviceBusSender,
+            ITaskRepository taskRepository
             )
         {
             _memoryCache = memoryCache;
             _serviceBusSender = serviceBusSender;
+            _taskRepository = taskRepository;
         }
 
-        public List<Model.Task> GetAllTasks()
+        public async Task< List<Data.Model.Task>> GetAllTasksAync()
         {
+            var t = await _taskRepository.GetAllTasks();
             return GetCachedTasks();
         }
 
-        public async Task<Model.Task> AddTask(Model.Task task)
+        public async Task<Data.Model.Task> AddTaskAync(Data.Model.Task task)
         {
-            List<Model.Task> tasks = GetCachedTasks();
+            List<Data.Model.Task> tasks = GetCachedTasks();
             task.TaskID = tasks.Count + 1; // Auto-generate TaskID for simplicity
             tasks.Add(task);
             UpdateCachedTasks(tasks);
             await _serviceBusSender.Send(task);
+            await _taskRepository.AddTask(task);
             return task;
         }
 
-        public Model.Task UpdateTaskStatus(UpdateTaskDTO updateTaskDTO)
+        public Data.Model.Task UpdateTaskStatus(UpdateTaskDTO updateTaskDTO)
         {
-            List<Model.Task> tasks = GetCachedTasks();
+            List<Data.Model.Task> tasks = GetCachedTasks();
             List<TaskUpdate> taskUpdates = GetCachedTaskUpdates();
-            Model.Task taskToUpdate = tasks.FirstOrDefault(t => t.TaskID == updateTaskDTO.TaskId);
+            Data.Model.Task taskToUpdate = tasks.FirstOrDefault(t => t.TaskID == updateTaskDTO.TaskId);
             if (taskToUpdate != null)
             {
                 taskToUpdate.Status = (TaskStatus)Enum.Parse(typeof(TaskStatus), updateTaskDTO.NewStatus); 
@@ -48,11 +54,11 @@ namespace TMS.Service.Impl.Impl
             return taskToUpdate;
         }
 
-        private List<Model.Task> GetCachedTasks()
+        private List<Data.Model.Task> GetCachedTasks()
         {
-            if (!_memoryCache.TryGetValue(AppConst.CacheKeyTask, out List<Model.Task> tasks))
+            if (!_memoryCache.TryGetValue(AppConst.CacheKeyTask, out List<Data.Model.Task> tasks))
             {
-                tasks = new List<Model.Task>();
+                tasks = new List<Data.Model.Task>();
                 _memoryCache.Set(AppConst.CacheKeyTask, tasks, TimeSpan.FromMinutes(60)); // Cache for 30 minutes
             }
             return tasks;
@@ -68,7 +74,7 @@ namespace TMS.Service.Impl.Impl
             return taskUpdates;
         }
 
-        private void UpdateCachedTasks(List<Model.Task> tasks)
+        private void UpdateCachedTasks(List<Data.Model.Task> tasks)
         {
             _memoryCache.Set(AppConst.CacheKeyTask, tasks, TimeSpan.FromMinutes(60)); // Cache for 30 minutes
         }

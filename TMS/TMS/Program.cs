@@ -1,3 +1,6 @@
+using Data.Context;
+using Data.Repo;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using TMS.Service;
 using TMS.Service.Impl;
@@ -19,6 +22,8 @@ builder.Services.AddCors(options =>
                            .AllowAnyHeader();
                 });
         });
+string conn = Environment.GetEnvironmentVariable("sqlTaskConnectionString");
+builder.Services.AddDbContext<TaskDbContext>(o => o.UseSqlServer(conn));
 
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddControllers().AddJsonOptions(x =>
@@ -30,6 +35,8 @@ builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.IgnoreNullValues = true;
             });
 builder.Services.AddScoped<IServiceBusSender, ServiceBusSender>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+
 
 var app = builder.Build();
 

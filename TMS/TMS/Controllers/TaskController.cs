@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TMS.Model.DTO;
+using Data.Model.DTO;
 using TMS.Service.Impl;
-using TaskStatus = TMS.Model.TaskStatus;
+using TaskStatus = Data.Model.TaskStatus;
 
 namespace TMS.Controllers
 {
@@ -18,9 +18,9 @@ namespace TMS.Controllers
 
         // POST: api/tasks/add
         [HttpPost("add")]
-        public IActionResult AddTask(Model.Task task)
+        public async Task<IActionResult> AddTask(Data.Model.Task task)
         {
-            _taskService.AddTask(task);
+            await _taskService.AddTaskAync(task);
             return Ok("Task added successfully!");
         }
 
@@ -29,7 +29,7 @@ namespace TMS.Controllers
         public IActionResult UpdateTaskStatus(UpdateTaskDTO updateTaskDTO)
         {
      
-            Model.Task updatedTask = _taskService.UpdateTaskStatus(updateTaskDTO);
+            Data.Model.Task updatedTask = _taskService.UpdateTaskStatus(updateTaskDTO);
             if (updatedTask == null)
             {
                 return NotFound("Task not found.");
@@ -39,9 +39,9 @@ namespace TMS.Controllers
 
         // GET: api/tasks
         [HttpGet]
-        public IActionResult GetAllTasks()
+        public async Task<IActionResult> GetAllTasks()
         {
-            List<Model.Task> tasks = _taskService.GetAllTasks();
+            List<Data.Model.Task> tasks = await _taskService.GetAllTasksAync();
             return Ok(tasks);
         }
     }

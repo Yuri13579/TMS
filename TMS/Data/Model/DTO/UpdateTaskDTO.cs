@@ -1,4 +1,4 @@
-﻿namespace TMS.Model.DTO
+﻿namespace Data.Model.DTO
 {
     public class UpdateTaskDTO
     {

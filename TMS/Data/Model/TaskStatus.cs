@@ -1,4 +1,4 @@
-﻿namespace TMS.Model;
+﻿namespace Data.Model;
 
 public enum TaskStatus
 {
